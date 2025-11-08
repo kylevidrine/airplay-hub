@@ -164,6 +164,22 @@ const Index = () => {
     }
   };
 
+  const handleNext = () => {
+    if (currentIndex < videos.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+    } else {
+      setCurrentIndex(0);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+    } else {
+      setCurrentIndex(videos.length - 1);
+    }
+  };
+
   if (!isAuthenticated) {
     return <LoginScreen onLogin={handleLogin} />;
   }
@@ -209,6 +225,8 @@ const Index = () => {
         onUpload={() => updateStatus('Ready To Upload')}
         onScheduled={() => updateStatus('Scheduled')}
         onSkip={handleSkip}
+        onNext={handleNext}
+        onPrevious={handlePrevious}
       />
     );
   };

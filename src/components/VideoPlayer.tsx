@@ -7,9 +7,11 @@ interface VideoPlayerProps {
   onUpload: () => void;
   onScheduled: () => void;
   onSkip: () => void;
+  onNext: () => void;
+  onPrevious: () => void;
 }
 
-export const VideoPlayer = ({ url, onUpload, onScheduled, onSkip }: VideoPlayerProps) => {
+export const VideoPlayer = ({ url, onUpload, onScheduled, onSkip, onNext, onPrevious }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
@@ -43,11 +45,13 @@ export const VideoPlayer = ({ url, onUpload, onScheduled, onSkip }: VideoPlayerP
     }
   };
 
-  const handleUnmute = () => {
+  const handleToggleAudio = () => {
     if (videoRef.current) {
-      videoRef.current.muted = false;
-      videoRef.current.play();
-      setIsMuted(false);
+      videoRef.current.muted = !videoRef.current.muted;
+      setIsMuted(videoRef.current.muted);
+      if (!videoRef.current.muted) {
+        videoRef.current.play();
+      }
     }
   };
 
@@ -110,21 +114,40 @@ export const VideoPlayer = ({ url, onUpload, onScheduled, onSkip }: VideoPlayerP
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-2.5 mb-4">
+        <div className="grid grid-cols-3 gap-2.5 mb-4">
           <Button
             onClick={handlePlayPause}
             className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full py-3.5 font-semibold transition-transform active:scale-95"
           >
             {isPlaying ? <><Pause className="w-4 h-4 mr-2" /> Pause</> : <><Play className="w-4 h-4 mr-2" /> Play</>}
           </Button>
-          {isMuted && (
-            <Button
-              onClick={handleUnmute}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full py-3.5 font-semibold transition-transform active:scale-95"
-            >
-              <Volume2 className="w-4 h-4 mr-2" /> Play Audio
-            </Button>
-          )}
+          <Button
+            onClick={handleToggleAudio}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full py-3.5 font-semibold transition-transform active:scale-95"
+          >
+            <Volume2 className="w-4 h-4 mr-2" /> {isMuted ? 'Unmute' : 'Mute'}
+          </Button>
+          <Button
+            onClick={onSkip}
+            className="bg-secondary hover:bg-secondary/90 text-secondary-foreground rounded-full py-3.5 font-semibold transition-transform active:scale-95"
+          >
+            Skip
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2.5 mb-4">
+          <Button
+            onClick={onPrevious}
+            className="bg-secondary hover:bg-secondary/90 text-secondary-foreground rounded-full py-3.5 font-semibold transition-transform active:scale-95"
+          >
+            Previous Video
+          </Button>
+          <Button
+            onClick={onNext}
+            className="bg-secondary hover:bg-secondary/90 text-secondary-foreground rounded-full py-3.5 font-semibold transition-transform active:scale-95"
+          >
+            Next Video
+          </Button>
         </div>
 
         <div className="grid grid-cols-2 gap-2.5">
@@ -139,12 +162,6 @@ export const VideoPlayer = ({ url, onUpload, onScheduled, onSkip }: VideoPlayerP
             className="bg-warning hover:bg-warning/90 text-warning-foreground rounded-full py-3.5 font-semibold transition-transform active:scale-95"
           >
             Scheduled
-          </Button>
-          <Button
-            onClick={onSkip}
-            className="bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-full py-3.5 font-semibold transition-transform active:scale-95 col-span-2"
-          >
-            Skip
           </Button>
         </div>
       </div>
