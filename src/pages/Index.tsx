@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { VideoPlayer } from '@/components/VideoPlayer';
 import { LoginScreen } from '@/components/LoginScreen';
-import { Button } from '@/components/ui/button';
-import { LogOut } from 'lucide-react';
+import { BottomTabBar } from '@/components/BottomTabBar';
+import { HomeTab } from '@/components/HomeTab';
+import { SettingsTab } from '@/components/SettingsTab';
 import { useToast } from '@/hooks/use-toast';
 
 const APP_PASSWORD = 'temp1234';
@@ -29,6 +30,7 @@ const Index = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('Loading videos...');
+  const [activeTab, setActiveTab] = useState<'home' | 'review' | 'settings'>('home');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -174,39 +176,47 @@ const Index = () => {
     );
   }
 
-  if (videos.length === 0) {
+  const renderContent = () => {
+    if (activeTab === 'home') {
+      return (
+        <HomeTab 
+          videosRemaining={videos.length}
+          onStartReview={() => setActiveTab('review')}
+        />
+      );
+    }
+
+    if (activeTab === 'settings') {
+      return <SettingsTab onLogout={handleLogout} />;
+    }
+
+    // Review tab
+    if (videos.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center h-full px-5 pb-24">
+          <p className="text-foreground text-lg text-center">{message}</p>
+        </div>
+      );
+    }
+
+    const currentVideo = videos[currentIndex];
+    let videoUrl = currentVideo.fields[URL_FIELD];
+    videoUrl = videoUrl.replace('http://192.168.1.210:8081', 'https://videos.robosouthla.com') + '#t=0.1';
+
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-background px-5">
-        <Button
-          onClick={handleLogout}
-          className="absolute top-5 right-5 safe-top bg-destructive/80 hover:bg-destructive text-destructive-foreground rounded-full px-4 py-2"
-        >
-          <LogOut className="w-4 h-4 mr-2" /> Logout
-        </Button>
-        <p className="text-foreground text-lg text-center">{message}</p>
-      </div>
-    );
-  }
-
-  const currentVideo = videos[currentIndex];
-  let videoUrl = currentVideo.fields[URL_FIELD];
-  videoUrl = videoUrl.replace('http://192.168.1.210:8081', 'https://videos.robosouthla.com') + '#t=0.1';
-
-  return (
-    <div className="relative h-screen bg-background">
-      <Button
-        onClick={handleLogout}
-        className="absolute top-5 right-5 safe-top z-50 bg-destructive/80 hover:bg-destructive text-destructive-foreground rounded-full px-4 py-2"
-      >
-        <LogOut className="w-4 h-4 mr-2" /> Logout
-      </Button>
-
       <VideoPlayer
         url={videoUrl}
         onUpload={() => updateStatus('Ready To Upload')}
         onScheduled={() => updateStatus('Scheduled')}
         onSkip={handleSkip}
       />
+    );
+  };
+
+  return (
+    <div className="relative h-screen bg-background overflow-hidden">
+      {renderContent()}
+      <BottomTabBar activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
   );
 };

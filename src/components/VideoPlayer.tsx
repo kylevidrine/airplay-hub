@@ -74,7 +74,7 @@ export const VideoPlayer = ({ url, onUpload, onScheduled, onSkip }: VideoPlayerP
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
-    <div className="flex flex-col h-screen bg-background">
+    <div className="flex flex-col h-full bg-background pb-20">
       <div className="flex-1 relative bg-black flex items-center justify-center">
         <video
           ref={videoRef}
