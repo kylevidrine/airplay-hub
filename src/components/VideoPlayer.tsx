@@ -31,6 +31,9 @@ interface VideoPlayerProps {
   onPrevious: () => void;
 }
 
+// Key: Store mute state **outside** the useEffect that runs on url change
+let globalMuted = true; // default = muted (first video)
+
 export const VideoPlayer = ({
   url,
   originalFilePath,
@@ -43,16 +46,18 @@ export const VideoPlayer = ({
 }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(true);
-  const [isMuted, setIsMuted] = useState(true);
+  const [isMuted, setIsMuted] = useState(globalMuted); // sync with global
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
 
+  // Apply saved mute state + autoplay (without forcing mute)
   useEffect(() => {
     if (videoRef.current) {
-      videoRef.current.muted = true;
+      videoRef.current.muted = globalMuted;     // respect user choice
+      videoRef.current.volume = globalMuted ? 0 : 0.8;
       videoRef.current.play().catch(() => {});
     }
-  }, [url]);
+  }, [url]); // re-run when video changes
 
   const formatTime = (s: number) => {
     if (isNaN(s)) return '0:00';
@@ -73,8 +78,10 @@ export const VideoPlayer = ({
 
   const toggleMute = () => {
     if (videoRef.current) {
-      videoRef.current.muted = !videoRef.current.muted;
-      setIsMuted(videoRef.current.muted);
+      const newMuted = !videoRef.current.muted;
+      videoRef.current.muted = newMuted;
+      globalMuted = newMuted;        // persist globally
+      setIsMuted(newMuted);
     }
   };
 
@@ -100,7 +107,6 @@ export const VideoPlayer = ({
 
   return (
     <>
-      {/* Video - fills space ABOVE bottom nav */}
       <div className="flex-1 relative bg-black flex items-center justify-center pb-32">
         <video
           ref={videoRef}
@@ -113,7 +119,7 @@ export const VideoPlayer = ({
           onLoadedMetadata={handleLoadedMetadata}
         />
 
-        {/* Floating ±10s skip buttons */}
+        {/* Floating ±10s buttons */}
         <div className="absolute inset-0 flex items-center justify-between px-8 opacity-0 hover:opacity-100 transition-opacity pointer-events-none">
           <button
             onClick={() => skip(-10)}
@@ -130,7 +136,7 @@ export const VideoPlayer = ({
         </div>
       </div>
 
-      {/* FIXED BLACK CONTROL BAR - sits ON TOP of bottom nav */}
+      {/* Fixed control bar */}
       <div className="fixed bottom-16 left-0 right-0 z-40 pointer-events-none">
         <div className="bg-black/95 backdrop-blur-md border-t border-white/10 pointer-events-auto">
           <div className="flex items-center justify-between px-4 py-2">
@@ -200,16 +206,9 @@ export const VideoPlayer = ({
                   <CheckCircle className="w-4 h-4 mr-2" /> Unskip
                 </DropdownMenuItem>
               </DropdownMenuContent>
+arisons>
             </DropdownMenu>
           </div>
 
           <div className="text-center pb-2 px-4">
-            <p className="text-white/40 text-[10px] font-mono truncate">
-              {originalFilePath}
-            </p>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-};
+            <p className="text-white/40 text-[10px] font
