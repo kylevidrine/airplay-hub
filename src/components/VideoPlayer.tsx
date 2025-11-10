@@ -23,7 +23,7 @@ export const VideoPlayer = ({ url, originalFilePath, onUpload, onScheduled, onSk
 
   useEffect(() => {
     if (videoRef.current) {
-      videoRef.current.muted = true;
+      videoRef.current.muted = isMuted;
       videoRef.current.play().catch(() => {});
     }
   }, [url]);
@@ -94,13 +94,8 @@ export const VideoPlayer = ({ url, originalFilePath, onUpload, onScheduled, onSk
         />
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 z-50 bg-gradient-to-t from-black/80 to-transparent px-4 pb-20 safe-bottom">
+      <div className="absolute bottom-0 left-0 right-0 z-50 bg-gradient-to-t from-black/80 to-transparent px-4 pb-24 safe-bottom">
         <div className="mb-4">
-          <div className="bg-black/50 rounded px-3 py-1.5 mb-2">
-            <div className="text-white/70 text-xs font-mono break-all">
-              {originalFilePath}
-            </div>
-          </div>
           <div className="text-foreground text-xs text-center mb-2">
             {formatTime(currentTime)} / {formatTime(duration)}
           </div>
@@ -119,6 +114,9 @@ export const VideoPlayer = ({ url, originalFilePath, onUpload, onScheduled, onSk
               background: `linear-gradient(to right, hsl(var(--primary)) 0%, hsl(var(--primary)) ${progress}%, rgba(255, 255, 255, 0.3) ${progress}%, rgba(255, 255, 255, 0.3) 100%)`
             }}
           />
+          <div className="text-white text-xs font-mono text-center mt-2 break-all px-2">
+            {originalFilePath}
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-2 mb-2">
