@@ -1,14 +1,12 @@
 import { useState, useEffect } from 'react';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 import { VideoPlayer } from '@/components/VideoPlayer';
 import { LoginScreen } from '@/components/LoginScreen';
 import { BottomTabBar } from '@/components/BottomTabBar';
 import { HomeTab } from '@/components/HomeTab';
 import { SettingsTab } from '@/components/SettingsTab';
 import { useToast } from '@/hooks/use-toast';
-
-const APP_PASSWORD = 'temp1234';
-const SESSION_KEY = 'roboSouthLA_session';
-const SESSION_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 const PAT = 'patPWGKtL2NqRQBya.dacbf7d926800e780f2686865d54b1e6220b1f198b943117674a43af5b0cf50d';
 const BASE = 'appLCkO4915Nj7xTe';
@@ -34,46 +32,36 @@ const Index = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    checkAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setIsAuthenticated(!!user);
+      setLoading(false);
+      if (user) {
+        loadVideos();
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      loadVideos();
-    }
-  }, [isAuthenticated]);
-
-  const checkAuth = () => {
-    const session = localStorage.getItem(SESSION_KEY);
-    if (session) {
-      try {
-        const sessionData = JSON.parse(session);
-        const now = new Date().getTime();
-        if (now < sessionData.expiry) {
-          setIsAuthenticated(true);
-          return;
-        }
-      } catch (e) {
-        console.error('Invalid session data');
-      }
-      localStorage.removeItem(SESSION_KEY);
-    }
-    setLoading(false);
+  const handleLoginSuccess = () => {
+    setIsAuthenticated(true);
   };
 
-  const handleLogin = (password: string) => {
-    if (password === APP_PASSWORD) {
-      const expiry = new Date().getTime() + SESSION_DURATION;
-      localStorage.setItem(SESSION_KEY, JSON.stringify({ expiry }));
-      setIsAuthenticated(true);
-      return true;
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      toast({
+        title: "Logged out",
+        description: "You have been logged out successfully",
+      });
+    } catch (error) {
+      console.error('Error logging out:', error);
+      toast({
+        title: "Error",
+        description: "Failed to log out",
+        variant: "destructive",
+      });
     }
-    return false;
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem(SESSION_KEY);
-    window.location.reload();
   };
 
   const loadVideos = async () => {
@@ -177,7 +165,7 @@ const Index = () => {
   };
 
   if (!isAuthenticated) {
-    return <LoginScreen onLogin={handleLogin} />;
+    return <LoginScreen onLoginSuccess={handleLoginSuccess} />;
   }
 
   if (loading) {

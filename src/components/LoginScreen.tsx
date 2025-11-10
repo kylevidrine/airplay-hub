@@ -1,20 +1,43 @@
 import { useState, FormEvent } from 'react';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 
 interface LoginScreenProps {
-  onLogin: (password: string) => boolean;
+  onLoginSuccess: () => void;
 }
 
-export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState(false);
+const ALLOWED_EMAIL = 'kylemvidrine@gmail.com';
 
-  const handleSubmit = (e: FormEvent) => {
+export const LoginScreen = ({ onLoginSuccess }: LoginScreenProps) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    const success = onLogin(password);
-    if (!success) {
-      setError(true);
-      setPassword('');
+    setError('');
+    
+    if (email !== ALLOWED_EMAIL) {
+      setError('This email is not authorized to access this app.');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      onLoginSuccess();
+    } catch (err: any) {
+      if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password') {
+        setError('Invalid email or password.');
+      } else if (err.code === 'auth/user-not-found') {
+        setError('No account found with this email.');
+      } else {
+        setError('Login failed. Please try again.');
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -26,27 +49,41 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
         </h2>
         <form onSubmit={handleSubmit} className="space-y-5">
           <input
+            type="email"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setError('');
+            }}
+            placeholder="Email address"
+            className="w-full px-5 py-3 border-2 border-white/30 bg-white/10 text-foreground rounded-full text-base outline-none placeholder:text-white/50 focus:border-primary transition-colors"
+            autoComplete="email"
+            autoFocus
+            required
+          />
+          <input
             type="password"
             value={password}
             onChange={(e) => {
               setPassword(e.target.value);
-              setError(false);
+              setError('');
             }}
-            placeholder="Enter password"
+            placeholder="Password"
             className="w-full px-5 py-3 border-2 border-white/30 bg-white/10 text-foreground rounded-full text-base outline-none placeholder:text-white/50 focus:border-primary transition-colors"
             autoComplete="current-password"
-            autoFocus
+            required
           />
           <Button
             type="submit"
-            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-full py-3 text-base font-semibold transition-transform active:scale-95"
+            disabled={isLoading}
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-full py-3 text-base font-semibold transition-transform active:scale-95 disabled:opacity-50"
           >
-            Login
+            {isLoading ? 'Logging in...' : 'Login'}
           </Button>
         </form>
         {error && (
           <p className="text-destructive mt-2.5 text-sm">
-            Incorrect password. Please try again.
+            {error}
           </p>
         )}
       </div>
