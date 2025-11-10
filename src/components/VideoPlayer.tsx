@@ -79,9 +79,7 @@ export const VideoPlayer = ({
   };
 
   const skip = (seconds: number) => {
-    if (videoRef.current) {
-      videoRef.current.currentTime += seconds;
-    }
+    if (videoRef.current) videoRef.current.currentTime += seconds;
   };
 
   const handleTimeUpdate = () => {
@@ -92,12 +90,18 @@ export const VideoPlayer = ({
     if (videoRef.current) setDuration(videoRef.current.duration);
   };
 
+  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const time = parseFloat(e.target.value);
+    if (videoRef.current) videoRef.current.currentTime = time;
+    setCurrentTime(time);
+  };
+
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
-    <div className="flex flex-col h-full bg-background">
-      {/* Video */}
-      <div className="relative flex-1 bg-black flex items-center justify-center">
+    <>
+      {/* Video - fills space ABOVE bottom nav */}
+      <div className="flex-1 relative bg-black flex items-center justify-center pb-32">
         <video
           ref={videoRef}
           src={url}
@@ -109,138 +113,103 @@ export const VideoPlayer = ({
           onLoadedMetadata={handleLoadedMetadata}
         />
 
-        {/* Floating Skip Buttons (appear on hover/tap) */}
+        {/* Floating ±10s skip buttons */}
         <div className="absolute inset-0 flex items-center justify-between px-8 opacity-0 hover:opacity-100 transition-opacity pointer-events-none">
           <button
             onClick={() => skip(-10)}
             className="bg-black/60 backdrop-blur-sm text-white p-4 rounded-full pointer-events-auto active:scale-95 transition"
           >
-            <SkipBack className="w-8 h-8" />
+            <SkipBack className="w-10 h-10" />
           </button>
           <button
             onClick={() => skip(10)}
             className="bg-black/60 backdrop-blur-sm text-white p-4 rounded-full pointer-events-auto active:scale-95 transition"
           >
-            <SkipForward className="w-8 h-8" />
+            <SkipForward className="w-10 h-10" />
           </button>
         </div>
       </div>
 
-      {/* Slim Black Control Bar - Matches your app's bottom nav */}
-      <div className="bg-black border-t border-white/10">
-        <div className="flex items-center justify-between px-4 py-2">
+      {/* FIXED BLACK CONTROL BAR - sits ON TOP of bottom nav */}
+      <div className="fixed bottom-16 left-0 right-0 z-40 pointer-events-none">
+        <div className="bg-black/95 backdrop-blur-md border-t border-white/10 pointer-events-auto">
+          <div className="flex items-center justify-between px-4 py-2">
+            {/* Left: Media Controls */}
+            <div className="flex items-center gap-1">
+              <Button variant="ghost" size="sm" onClick={togglePlay} className="text-white hover:bg-white/20 h-9 px-3">
+                {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                <span className="ml-1 text-xs">{isPlaying ? 'Pause' : 'Play'}</span>
+              </Button>
 
-          {/* Left: Media Controls */}
-          <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={togglePlay}
-              className="text-white hover:bg-white/20 h-9 px-3"
-            >
-              {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-              <span className="ml-1 text-xs">{isPlaying ? 'Pause' : 'Play'}</span>
-            </Button>
+              <Button variant="ghost" size="sm" onClick={toggleMute} className="text-white hover:bg-white/20 h-9 px-3">
+                {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                <span className="ml-1 text-xs">{isMuted ? 'Unmute' : 'Mute'}</span>
+              </Button>
 
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleMute}
-              className="text-white hover:bg-white/20 h-9 px-3"
-            >
-              {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-              <span className="ml-1 text-xs">{isMuted ? 'Unmute' : 'Mute'}</span>
-            </Button>
+              <Button variant="ghost" size="sm" onClick={onPrevious} className="text-white hover:bg-white/20 h-9 px-3">
+                <SkipBack className="w-4 h-4" />
+                <span className="ml-1 text-xs">Prev</span>
+              </Button>
 
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onPrevious}
-              className="text-white hover:bg-white/20 h-9 px-3"
-            >
-              <SkipBack className="w-4 h-4" />
-              <span className="ml-1 text-xs">Prev</span>
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onNext}
-              className="text-white hover:bg-white/20 h-9 px-3"
-            >
-              <SkipForward className="w-4 h-4" />
-              <span className="ml-1 text-xs">Next</span>
-            </Button>
-          </div>
-
-          {/* Center: Progress */}
-          <div className="flex-1 max-w-md mx-4">
-            <div className="text-white/70 text-xs text-center mb-1">
-              {formatTime(currentTime)} / {formatTime(duration)}
+              <Button variant="ghost" size="sm" onClick={onNext} className="text-white hover:bg-white/20 h-9 px-3">
+                <SkipForward className="w-4 h-4" />
+                <span className="ml-1 text-xs">Next</span>
+              </Button>
             </div>
-            <input
-              type="range"
-              min="0"
-              max={duration || 100}
-              value={currentTime}
-              onChange={(e) => {
-                const time = parseFloat(e.target.value);
-                if (videoRef.current) videoRef.current.currentTime = time;
-              }}
-              className="w-full h-1 bg-white/20 rounded-full cursor-pointer
-                [&::-webkit-slider-thumb]:appearance-none
-                [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3
-                [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white
-                [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3
-                [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white"
-              style={{
-                background: `linear-gradient(to right, white 0%, white ${progress}%, rgba(255,255,255,0.2) ${progress}%, rgba(255,255,255,0.2) 100%)`,
-              }}
-            />
-          </div>
 
-          {/* Right: Database Actions */}
-          <div className="flex items-center gap-1">
+            {/* Center: Progress */}
+            <div className="flex-1 max-w-md mx-4">
+              <div className="text-white/70 text-xs text-center mb-1">
+                {formatTime(currentTime)} / {formatTime(duration)}
+              </div>
+              <input
+                type="range"
+                min="0"
+                max={duration || 100}
+                value={currentTime}
+                onChange={handleSeek}
+                className="w-full h-1 bg-white/20 rounded-full cursor-pointer
+                  [&::-webkit-slider-thumb]:appearance-none
+                  [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3
+                  [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white"
+                style={{
+                  background: `linear-gradient(to right, white 0%, white ${progress}%, rgba(255,255,255,0.2) ${progress}%, rgba(255,255,255,0.2) 100%)`,
+                }}
+              />
+            </div>
+
+            {/* Right: Actions */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-white hover:bg-white/20 h-9 px-3"
-                >
+                <Button variant="ghost" size="sm" className="text-white hover:bg-white/20 h-9 px-3">
                   <MoreVertical className="w-4 h-4" />
                   <span className="ml-1 text-xs">Actions</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem onClick={onUpload} className="cursor-pointer">
-                  <Upload className="w-4 h-4 mr-2" />
-                  Ready to Upload
+                <DropdownMenuItem onClick={onUpload}>
+                  <Upload className="w-4 h-4 mr-2" /> Ready to Upload
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={onScheduled} className="cursor-pointer">
-                  <Calendar className="w-4 h-4 mr-2" />
-                  Mark as Scheduled
+                <DropdownMenuItem onClick={onScheduled}>
+                  <Calendar className="w-4 h-4 mr-2" /> Scheduled
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={onSkip} className="cursor-pointer text-destructive">
-                  <XCircle className="w-4 h-4 mr-2" />
-                  Skip This Video
+                <DropdownMenuItem onClick={onSkip} className="text-destructive">
+                  <XCircle className="w-4 h-4 mr-2" /> Skip
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={onUnskip} className="cursor-pointer text-green-600">
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  Unskip (Keep)
+                <DropdownMenuItem onClick={onUnskip} className="text-green-600">
+                  <CheckCircle className="w-4 h-4 mr-2" /> Unskip
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-        </div>
 
-        {/* File Path - Tiny footer */}
-        <div className="text-center pb-2 px-4">
-          <p className="text-white/40 text-[10px] font-mono truncate">
-            {originalFilePath}
-          </p>
+          <div className="text-center pb-2 px-4">
+            <p className="text-white/40 text-[10px] font-mono truncate">
+              {originalFilePath}
+            </p>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
