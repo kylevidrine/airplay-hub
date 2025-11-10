@@ -94,7 +94,7 @@ export const VideoPlayer = ({ url, originalFilePath, onUpload, onScheduled, onSk
         />
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 z-50 bg-gradient-to-t from-black/80 to-transparent px-5 pb-5 safe-bottom">
+      <div className="absolute bottom-0 left-0 right-0 z-50 bg-gradient-to-t from-black/80 to-transparent px-4 pb-20 safe-bottom">
         <div className="mb-4">
           <div className="bg-black/50 rounded px-3 py-1.5 mb-2">
             <div className="text-white/70 text-xs font-mono break-all">
@@ -121,61 +121,61 @@ export const VideoPlayer = ({ url, originalFilePath, onUpload, onScheduled, onSk
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-2.5 mb-3">
+        <div className="grid grid-cols-2 gap-2 mb-2">
           <Button
             onClick={handlePlayPause}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full py-3.5 font-semibold transition-transform active:scale-95"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full py-2.5 text-sm font-semibold transition-transform active:scale-95"
           >
-            {isPlaying ? <><Pause className="w-4 h-4 mr-2" /> Pause</> : <><Play className="w-4 h-4 mr-2" /> Play</>}
+            {isPlaying ? <><Pause className="w-4 h-4 mr-1" /> Pause</> : <><Play className="w-4 h-4 mr-1" /> Play</>}
           </Button>
           <Button
             onClick={handleToggleAudio}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full py-3.5 font-semibold transition-transform active:scale-95"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full py-2.5 text-sm font-semibold transition-transform active:scale-95"
           >
-            <Volume2 className="w-4 h-4 mr-2" /> {isMuted ? 'Play Audio' : 'Mute Audio'}
+            <Volume2 className="w-4 h-4 mr-1" /> {isMuted ? 'Play Audio' : 'Mute Audio'}
           </Button>
         </div>
 
-        <div className="grid grid-cols-2 gap-2.5 mb-3">
+        <div className="grid grid-cols-2 gap-2 mb-2">
           <Button
             onClick={onUpload}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full py-3.5 font-semibold transition-transform active:scale-95"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full py-2.5 text-sm font-semibold transition-transform active:scale-95"
           >
             Ready To Upload
           </Button>
           <Button
             onClick={onScheduled}
-            className="bg-warning hover:bg-warning/90 text-warning-foreground rounded-full py-3.5 font-semibold transition-transform active:scale-95"
+            className="bg-warning hover:bg-warning/90 text-warning-foreground rounded-full py-2.5 text-sm font-semibold transition-transform active:scale-95"
           >
             Scheduled
           </Button>
         </div>
 
-        <div className="grid grid-cols-2 gap-2.5 mb-3">
+        <div className="grid grid-cols-2 gap-2 mb-2">
           <Button
             onClick={onSkip}
-            className="bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-full py-3.5 font-semibold transition-transform active:scale-95"
+            className="bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-full py-2.5 text-sm font-semibold transition-transform active:scale-95"
           >
             Skip
           </Button>
           <Button
             onClick={onUnskip}
-            className="bg-green-600 hover:bg-green-700 text-white rounded-full py-3.5 font-semibold transition-transform active:scale-95"
+            className="bg-green-600 hover:bg-green-700 text-white rounded-full py-2.5 text-sm font-semibold transition-transform active:scale-95"
           >
             Unskip
           </Button>
         </div>
 
-        <div className="grid grid-cols-2 gap-2.5">
+        <div className="grid grid-cols-2 gap-2">
           <Button
             onClick={onPrevious}
-            className="bg-secondary hover:bg-secondary/90 text-secondary-foreground rounded-full py-3.5 font-semibold transition-transform active:scale-95"
+            className="bg-secondary hover:bg-secondary/90 text-secondary-foreground rounded-full py-2.5 text-sm font-semibold transition-transform active:scale-95"
           >
             ← Back
           </Button>
           <Button
             onClick={onNext}
-            className="bg-secondary hover:bg-secondary/90 text-secondary-foreground rounded-full py-3.5 font-semibold transition-transform active:scale-95"
+            className="bg-secondary hover:bg-secondary/90 text-secondary-foreground rounded-full py-2.5 text-sm font-semibold transition-transform active:scale-95"
           >
             Forward →
           </Button>
