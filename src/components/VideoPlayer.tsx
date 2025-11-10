@@ -1,6 +1,24 @@
 import { useRef, useState, useEffect } from 'react';
-import { Play, Pause, Volume2 } from 'lucide-react';
+import {
+  Play,
+  Pause,
+  Volume2,
+  VolumeX,
+  SkipBack,
+  SkipForward,
+  Upload,
+  Calendar,
+  XCircle,
+  CheckCircle,
+  MoreVertical,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface VideoPlayerProps {
   url: string;
@@ -13,170 +31,214 @@ interface VideoPlayerProps {
   onPrevious: () => void;
 }
 
-export const VideoPlayer = ({ url, originalFilePath, onUpload, onScheduled, onSkip, onUnskip, onNext, onPrevious }: VideoPlayerProps) => {
+export const VideoPlayer = ({
+  url,
+  originalFilePath,
+  onUpload,
+  onScheduled,
+  onSkip,
+  onUnskip,
+  onNext,
+  onPrevious,
+}: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [seeking, setSeeking] = useState(false);
 
   useEffect(() => {
     if (videoRef.current) {
-      videoRef.current.muted = isMuted;
+      videoRef.current.muted = true;
       videoRef.current.play().catch(() => {});
     }
   }, [url]);
 
-  const formatTime = (seconds: number) => {
-    if (isNaN(seconds)) return '0:00';
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  const formatTime = (s: number) => {
+    if (isNaN(s)) return '0:00';
+    const m = Math.floor(s / 60);
+    const secs = Math.floor(s % 60);
+    return `${m}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handlePlayPause = () => {
-    if (videoRef.current) {
-      if (videoRef.current.paused) {
-        videoRef.current.play();
-        setIsPlaying(true);
-      } else {
-        videoRef.current.pause();
-        setIsPlaying(false);
-      }
+  const togglePlay = () => {
+    if (videoRef.current?.paused) {
+      videoRef.current.play();
+      setIsPlaying(true);
+    } else {
+      videoRef.current?.pause();
+      setIsPlaying(false);
     }
   };
 
-  const handleToggleAudio = () => {
+  const toggleMute = () => {
     if (videoRef.current) {
       videoRef.current.muted = !videoRef.current.muted;
       setIsMuted(videoRef.current.muted);
-      if (!videoRef.current.muted) {
-        videoRef.current.play();
-      }
+    }
+  };
+
+  const skip = (seconds: number) => {
+    if (videoRef.current) {
+      videoRef.current.currentTime += seconds;
     }
   };
 
   const handleTimeUpdate = () => {
-    if (videoRef.current && !seeking) {
-      setCurrentTime(videoRef.current.currentTime);
-    }
+    if (videoRef.current) setCurrentTime(videoRef.current.currentTime);
   };
 
   const handleLoadedMetadata = () => {
-    if (videoRef.current) {
-      setDuration(videoRef.current.duration);
-    }
-  };
-
-  const handleSeekChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const time = parseFloat(e.target.value);
-    setCurrentTime(time);
-    if (videoRef.current) {
-      videoRef.current.currentTime = time;
-    }
+    if (videoRef.current) setDuration(videoRef.current.duration);
   };
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
-    <div className="flex flex-col h-full bg-background pb-20">
-      <div className="flex-1 relative bg-black flex items-center justify-center">
+    <div className="flex flex-col h-full bg-background">
+      {/* Video */}
+      <div className="relative flex-1 bg-black flex items-center justify-center">
         <video
           ref={videoRef}
           src={url}
-          className="w-full h-full object-contain"
+          className="max-w-full max-h-full object-contain"
           autoPlay
           playsInline
           preload="metadata"
           onTimeUpdate={handleTimeUpdate}
           onLoadedMetadata={handleLoadedMetadata}
         />
+
+        {/* Floating Skip Buttons (appear on hover/tap) */}
+        <div className="absolute inset-0 flex items-center justify-between px-8 opacity-0 hover:opacity-100 transition-opacity pointer-events-none">
+          <button
+            onClick={() => skip(-10)}
+            className="bg-black/60 backdrop-blur-sm text-white p-4 rounded-full pointer-events-auto active:scale-95 transition"
+          >
+            <SkipBack className="w-8 h-8" />
+          </button>
+          <button
+            onClick={() => skip(10)}
+            className="bg-black/60 backdrop-blur-sm text-white p-4 rounded-full pointer-events-auto active:scale-95 transition"
+          >
+            <SkipForward className="w-8 h-8" />
+          </button>
+        </div>
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 z-50 bg-gradient-to-t from-black/80 to-transparent px-4 pb-24 safe-bottom">
-        <div className="mb-4">
-          <div className="text-foreground text-xs text-center mb-2">
-            {formatTime(currentTime)} / {formatTime(duration)}
+      {/* Slim Black Control Bar - Matches your app's bottom nav */}
+      <div className="bg-black border-t border-white/10">
+        <div className="flex items-center justify-between px-4 py-2">
+
+          {/* Left: Media Controls */}
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={togglePlay}
+              className="text-white hover:bg-white/20 h-9 px-3"
+            >
+              {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+              <span className="ml-1 text-xs">{isPlaying ? 'Pause' : 'Play'}</span>
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleMute}
+              className="text-white hover:bg-white/20 h-9 px-3"
+            >
+              {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+              <span className="ml-1 text-xs">{isMuted ? 'Unmute' : 'Mute'}</span>
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onPrevious}
+              className="text-white hover:bg-white/20 h-9 px-3"
+            >
+              <SkipBack className="w-4 h-4" />
+              <span className="ml-1 text-xs">Prev</span>
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onNext}
+              className="text-white hover:bg-white/20 h-9 px-3"
+            >
+              <SkipForward className="w-4 h-4" />
+              <span className="ml-1 text-xs">Next</span>
+            </Button>
           </div>
-          <input
-            type="range"
-            min="0"
-            max={duration || 100}
-            value={currentTime}
-            onChange={handleSeekChange}
-            onMouseDown={() => setSeeking(true)}
-            onMouseUp={() => setSeeking(false)}
-            onTouchStart={() => setSeeking(true)}
-            onTouchEnd={() => setSeeking(false)}
-            className="w-full h-1.5 bg-white/30 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-primary [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:cursor-pointer"
-            style={{
-              background: `linear-gradient(to right, hsl(var(--primary)) 0%, hsl(var(--primary)) ${progress}%, rgba(255, 255, 255, 0.3) ${progress}%, rgba(255, 255, 255, 0.3) 100%)`
-            }}
-          />
-          <div className="text-white text-xs font-mono text-center mt-2 break-all px-2">
+
+          {/* Center: Progress */}
+          <div className="flex-1 max-w-md mx-4">
+            <div className="text-white/70 text-xs text-center mb-1">
+              {formatTime(currentTime)} / {formatTime(duration)}
+            </div>
+            <input
+              type="range"
+              min="0"
+              max={duration || 100}
+              value={currentTime}
+              onChange={(e) => {
+                const time = parseFloat(e.target.value);
+                if (videoRef.current) videoRef.current.currentTime = time;
+              }}
+              className="w-full h-1 bg-white/20 rounded-full cursor-pointer
+                [&::-webkit-slider-thumb]:appearance-none
+                [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3
+                [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white
+                [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3
+                [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white"
+              style={{
+                background: `linear-gradient(to right, white 0%, white ${progress}%, rgba(255,255,255,0.2) ${progress}%, rgba(255,255,255,0.2) 100%)`,
+              }}
+            />
+          </div>
+
+          {/* Right: Database Actions */}
+          <div className="flex items-center gap-1">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-white hover:bg-white/20 h-9 px-3"
+                >
+                  <MoreVertical className="w-4 h-4" />
+                  <span className="ml-1 text-xs">Actions</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={onUpload} className="cursor-pointer">
+                  <Upload className="w-4 h-4 mr-2" />
+                  Ready to Upload
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={onScheduled} className="cursor-pointer">
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Mark as Scheduled
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={onSkip} className="cursor-pointer text-destructive">
+                  <XCircle className="w-4 h-4 mr-2" />
+                  Skip This Video
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={onUnskip} className="cursor-pointer text-green-600">
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Unskip (Keep)
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+
+        {/* File Path - Tiny footer */}
+        <div className="text-center pb-2 px-4">
+          <p className="text-white/40 text-[10px] font-mono truncate">
             {originalFilePath}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2 mb-2">
-          <Button
-            onClick={handlePlayPause}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full py-2.5 text-sm font-semibold transition-transform active:scale-95"
-          >
-            {isPlaying ? <><Pause className="w-4 h-4 mr-1" /> Pause</> : <><Play className="w-4 h-4 mr-1" /> Play</>}
-          </Button>
-          <Button
-            onClick={handleToggleAudio}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full py-2.5 text-sm font-semibold transition-transform active:scale-95"
-          >
-            <Volume2 className="w-4 h-4 mr-1" /> {isMuted ? 'Play Audio' : 'Mute Audio'}
-          </Button>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2 mb-2">
-          <Button
-            onClick={onUpload}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full py-2.5 text-sm font-semibold transition-transform active:scale-95"
-          >
-            Ready To Upload
-          </Button>
-          <Button
-            onClick={onScheduled}
-            className="bg-warning hover:bg-warning/90 text-warning-foreground rounded-full py-2.5 text-sm font-semibold transition-transform active:scale-95"
-          >
-            Scheduled
-          </Button>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2 mb-2">
-          <Button
-            onClick={onSkip}
-            className="bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-full py-2.5 text-sm font-semibold transition-transform active:scale-95"
-          >
-            Skip
-          </Button>
-          <Button
-            onClick={onUnskip}
-            className="bg-green-600 hover:bg-green-700 text-white rounded-full py-2.5 text-sm font-semibold transition-transform active:scale-95"
-          >
-            Unskip
-          </Button>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2">
-          <Button
-            onClick={onPrevious}
-            className="bg-secondary hover:bg-secondary/90 text-secondary-foreground rounded-full py-2.5 text-sm font-semibold transition-transform active:scale-95"
-          >
-            ← Back
-          </Button>
-          <Button
-            onClick={onNext}
-            className="bg-secondary hover:bg-secondary/90 text-secondary-foreground rounded-full py-2.5 text-sm font-semibold transition-transform active:scale-95"
-          >
-            Forward →
-          </Button>
+          </p>
         </div>
       </div>
     </div>
