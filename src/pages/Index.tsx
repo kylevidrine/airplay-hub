@@ -156,13 +156,9 @@ const Index = () => {
     }
   };
 
-  const handleSkip = () => {
-    if (currentIndex < videos.length - 1) {
-      setCurrentIndex(currentIndex + 1);
-    } else {
-      setCurrentIndex(0);
-    }
-  };
+  const handleSkip = () => updateStatus('Skip');
+
+  const handleUnskip = () => updateStatus('');
 
   const handleNext = () => {
     if (currentIndex < videos.length - 1) {
@@ -216,15 +212,17 @@ const Index = () => {
     }
 
     const currentVideo = videos[currentIndex];
-    let videoUrl = currentVideo.fields[URL_FIELD];
-    videoUrl = videoUrl.replace('http://192.168.1.210:8081', 'https://videos.robosouthla.com') + '#t=0.1';
+    const originalFilePath = currentVideo.fields[URL_FIELD];
+    let videoUrl = originalFilePath.replace('http://192.168.1.210:8081', 'https://videos.robosouthla.com') + '#t=0.1';
 
     return (
       <VideoPlayer
         url={videoUrl}
+        originalFilePath={originalFilePath}
         onUpload={() => updateStatus('Ready To Upload')}
         onScheduled={() => updateStatus('Scheduled')}
         onSkip={handleSkip}
+        onUnskip={handleUnskip}
         onNext={handleNext}
         onPrevious={handlePrevious}
       />
