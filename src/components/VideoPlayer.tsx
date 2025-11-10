@@ -211,4 +211,12 @@ arisons>
           </div>
 
           <div className="text-center pb-2 px-4">
-            <p className="text-white/40 text-[10px] font
+            <p className="text-white/40 text-[10px] font-mono truncate">
+              {originalFilePath}
+            </p>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
